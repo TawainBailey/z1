@@ -1671,7 +1671,7 @@ local Library do
 
     for Index, Value in Library.Folders do 
         if not isfolder(Value) then
-            makefolder(Value)
+            pcall(makefolder, Value)
         end
     end
 
@@ -1681,8 +1681,12 @@ local Library do
         local ImageName = ImageData[1]
         local ImageLink = ImageData[2]
         
-        if not isfile(Library.Folders.Assets .. "/" .. ImageName) then
-            writefile(Library.Folders.Assets .. "/" .. ImageName, game:HttpGet(ImageLink))
+        local imagePath = Library.Folders.Assets .. "/" .. ImageName
+        if not isfile(imagePath) then
+            local ok, fileData = pcall(game.HttpGet, game, ImageLink)
+            if ok and fileData then
+                pcall(writefile, imagePath, fileData)
+            end
         end
     end
 
