@@ -289,16 +289,32 @@ local Options, MiscOptions do
             ["Tahoma Bold"] = "tahoma_bold.ttf"
         }
 
+        local function GetDefaultFontObject()
+            if type(Font) == "table" and Font.fromEnum then
+                local ok, fontObject = pcall(Font.fromEnum, Enum.Font.SourceSans)
+                if ok then
+                    return fontObject
+                end
+            end
+
+            return nil
+        end
+
         for name, suffix in FontNames do 
             local RegisteredFont = RegisterFont(name, 400, "Normal", {
                 Id = suffix,
                 Font = game:HttpGet("https://github.com/i77lhm/storage/raw/refs/heads/main/fonts/" .. suffix),
             }) 
 
-            if RegisteredFont then
-                Fonts[name] = Font.new(RegisteredFont, Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+            if RegisteredFont and type(Font) == "table" and Font.new then
+                local ok, fontObject = pcall(Font.new, RegisteredFont, Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+                if ok then
+                    Fonts[name] = fontObject
+                else
+                    Fonts[name] = GetDefaultFontObject()
+                end
             else
-                Fonts[name] = Font.fromEnum(Enum.Font.SourceSans)
+                Fonts[name] = GetDefaultFontObject()
             end
         end
     end
@@ -308,7 +324,9 @@ local Options, MiscOptions do
         ScreenGui = Instance.new("ScreenGui", gethui()), 
         Cache = Instance.new("ScreenGui", gethui()), 
         Connections = {}, 
-    }; do 
+    }
+    local Esp = getgenv().Esp
+    do 
         Esp.ScreenGui.IgnoreGuiInset = true
         Esp.ScreenGui.Name = "EspObject"
 
